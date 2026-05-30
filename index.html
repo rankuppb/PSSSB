@@ -151,7 +151,7 @@
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 1000; }
         .modal-box { padding: 40px; width: 400px; background: #fff; border-radius: 8px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
         .modal-box h2 { color: var(--accent); margin-top: 0; }
-        .modal-box input { width: 90%; padding: 12px; margin: 20px 0; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; outline: none; }
+        .modal-box input { width: 90%; padding: 12px; margin: 20px 0; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; outline: none; box-sizing: border-box;}
         
         .leaderboard-table { width: 100%; border-collapse: collapse; margin-top: 0; text-align: left; }
         .leaderboard-table th, .leaderboard-table td { padding: 12px; border-bottom: 1px solid #eee; }
@@ -163,6 +163,56 @@
         /* Recommendation styling */
         .rec-item { padding: 12px 20px; cursor:pointer; border-bottom:1px solid #eee; transition: 0.2s; }
         .rec-item:hover { background: #f4f9fd; color: var(--accent); padding-left: 25px; }
+
+        /* --- MOBILE RESPONSIVENESS (NEW) --- */
+        @media (max-width: 768px) {
+            body { font-size: 14px; }
+            
+            /* Modals */
+            .modal-box { width: 90% !important; padding: 25px 20px !important; }
+            #leaderboardModal .modal-box { width: 95% !important; padding: 15px !important; max-height: 90vh; }
+            .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+            
+            /* Pre-Exam Hub */
+            #pre-exam-hub { flex-direction: column; }
+            .sidebar { width: 100%; flex: none; border-right: none; border-bottom: 2px solid var(--border-color); }
+            .sidebar-header { font-size: 20px; padding: 15px; }
+            .hub-content { flex: 1; padding: 15px; justify-content: flex-start; }
+            .start-card { padding: 25px 15px; }
+            #mainCategoryGrid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)) !important; }
+            
+            /* Search */
+            .top-search-bar { flex-direction: column; }
+            .top-search-bar .btn { padding: 12px; }
+            
+            /* SSC UI Scroll Fix */
+            .ssc-header { flex-direction: column; gap: 8px; padding: 12px; text-align: center; }
+            .ssc-header-left { font-size: 18px; }
+            .ssc-header-right { justify-content: center; width: 100%; font-size: 14px; }
+            
+            .ssc-main { flex-direction: column; overflow-y: auto !important; }
+            .ssc-left { flex: none; height: auto; border-right: none; }
+            .question-header { padding: 12px 15px; font-size: 16px; }
+            .question-body { overflow-y: visible !important; padding: 15px; font-size: 15px; }
+            
+            .ssc-right { width: 100%; flex: none; height: auto; border-top: 2px solid var(--border-color); }
+            .palette-legend { grid-template-columns: 1fr 1fr; font-size: 11px; padding: 10px; }
+            .palette-grid-container { overflow-y: visible !important; padding: 15px; }
+            
+            /* Action Bar */
+            .action-bar { flex-direction: column; gap: 10px; padding: 15px; }
+            .btn-group-left, .btn-group-right { width: 100%; display: flex; gap: 8px; justify-content: space-between; }
+            .btn { flex: 1; width: auto; margin: 0 !important; padding: 10px 5px; font-size: 12px; text-align: center; }
+            
+            /* Results View */
+            #result-view { padding: 15px; }
+            .result-card { padding: 20px 15px; }
+            .score-display { font-size: 36px; }
+            .ans-review-box { padding: 15px; }
+            .ans-review-box > div:first-child { flex-direction: column; gap: 10px; align-items: flex-start !important; }
+            .review-nav { flex-direction: column; gap: 10px; }
+            .review-nav button { width: 100%; }
+        }
     </style>
 </head>
 <body>
@@ -198,17 +248,17 @@
     </div>
 
     <div class="modal-overlay" id="leaderboardModal" style="display: none;">
-        <div class="modal-box" style="width: 800px; position: relative; max-height: 85vh; overflow-y: auto; background: #f9fafc; padding: 30px;">
+        <div class="modal-box" style="position: relative; overflow-y: auto; background: #f9fafc;">
             <button class="close-btn" onclick="document.getElementById('leaderboardModal').style.display='none'">×</button>
             <h2 style="margin-bottom: 5px; color: var(--header-bg); text-align: left;">🏆 Test Series Leaderboard</h2>
             <p style="color: var(--text-muted); margin-bottom: 25px; text-align: left;">Select a Test Series below to view candidate rankings and chapter breakdowns.</p>
             
             <select id="leaderboardSelect" onchange="renderSpecificLeaderboard()" style="width: 100%; padding: 12px; margin-bottom: 20px; border-radius: 6px; border: 1px solid var(--border-color); font-size: 16px; font-weight: bold; color: var(--text-main); background: white;"></select>
             
-            <div style="background: #fff; border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden;">
+            <div class="table-responsive" style="background: #fff; border: 1px solid var(--border-color); border-radius: 8px;">
                 <table class="leaderboard-table">
                     <thead style="background: var(--header-bg); color: white;">
-                        <tr><th style="color:white;">Rank</th><th style="color:white;">Candidate Name</th><th style="color:white;">Net Score</th><th style="color:white;">Total Time</th></tr>
+                        <tr><th style="color:white; min-width:60px;">Rank</th><th style="color:white; min-width:150px;">Candidate Name</th><th style="color:white; min-width:80px;">Net Score</th><th style="color:white; min-width:80px;">Total Time</th></tr>
                     </thead>
                     <tbody id="leaderboardBody"><tr><td colspan="4" style="text-align:center;">Select a Test Series to view rankings</td></tr></tbody>
                 </table>
@@ -386,12 +436,12 @@
             
             const srcRegex = /(src=["']https:\/\/drive\.google\.com\/(?:file\/d\/|open\?id=))([a-zA-Z0-9_-]+)([^"']*["'])/gi;
             text = text.replace(srcRegex, (match, p1, id) => {
-                return `src="https://lh3.googleusercontent.com/d/$${id}"`;
+                return `src="http://googleusercontent.com/profile/picture/3{id}"`;
             });
             
             const rawLinkRegex = /(?<!src=["']|href=["']|url\()https:\/\/drive\.google\.com\/(?:file\/d\/|open\?id=)([a-zA-Z0-9_-]+)(?:\/[^\s"'>]*)?/gi;
             text = text.replace(rawLinkRegex, (match, id) => {
-                return `<img src="https://lh3.googleusercontent.com/d/$${id}" style="max-width:100%; max-height:380px; margin:12px 0; display:block; border:1px solid var(--border-color); border-radius:4px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);" alt="Question Illustration">`;
+                return `<img src="http://googleusercontent.com/profile/picture/3{id}" style="max-width:100%; max-height:380px; margin:12px 0; display:block; border:1px solid var(--border-color); border-radius:4px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);" alt="Question Illustration">`;
             });
             
             return text;
@@ -402,11 +452,11 @@
             const savedMob = localStorage.getItem('rankup_mobile');
             const savedPwd = localStorage.getItem('rankup_pwd');
             if(savedMob && savedPwd) {
-                // Feature 1 Update: Pre-fill the login inputs so they are ready next time
+                // Auto-fill the inputs
                 document.getElementById('loginMobile').value = savedMob;
                 document.getElementById('loginPassword').value = savedPwd;
                 
-                // Continue to run the auto-login automatically
+                // Run auto-login
                 document.getElementById('loginForm').style.display = 'none';
                 document.getElementById('authLoading').style.display = 'block';
                 autoLogin(savedMob, savedPwd);
@@ -485,7 +535,6 @@
                 if(data.success) {
                     completeLoginInit(data.name);
                 } else {
-                    // Note: Intentionally NOT wiping localStorage, so it stays auto-filled for the user to try again
                     document.getElementById('authLoading').style.display = 'none';
                     document.getElementById('loginForm').style.display = 'block';
                 }
@@ -520,7 +569,7 @@
             if(btn) btn.classList.add('active');
         }
 
-        // --- Feature 2: Database Recommendations Logic ---
+        // --- Database Recommendations Logic ---
         function showRecommendations(val) {
             const recBox = document.getElementById('searchRecommendations');
             if (!globalQuestions || globalQuestions.length === 0) return;
@@ -537,7 +586,7 @@
                 arr = arr.filter(item => item.toLowerCase().includes(val.toLowerCase()));
             }
             
-            arr = arr.slice(0, 8); // Show top 8 recommendations
+            arr = arr.slice(0, 8); 
             
             if (arr.length === 0 || val.trim() === '') {
                 recBox.style.display = 'none';
@@ -554,7 +603,6 @@
             executeSearch('mainSearchInput');
         }
 
-        // Hide recommendations when clicking outside
         document.addEventListener('click', (e) => {
             if(e.target.id !== 'mainSearchInput') {
                 const recBox = document.getElementById('searchRecommendations');
@@ -1033,7 +1081,7 @@
             
             if (data && data.length > 0) {
                 data.forEach((row, i) => {
-                    let breakdownHtml = `<table style="width:100%; border-collapse:collapse; margin-top:5px; font-size:13px; background:#fff; border: 1px solid #ddd; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                    let breakdownHtml = `<div class="table-responsive"><table style="width:100%; border-collapse:collapse; margin-top:5px; font-size:13px; background:#fff; border: 1px solid #ddd; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
                         <tr style="background:#e1f0fa; color:var(--accent);">
                             <th style="padding:10px; text-align:left; border-bottom:1px solid #ccc;">Subject</th>
                             <th style="padding:10px; text-align:left; border-bottom:1px solid #ccc;">Chapter (Topic)</th>
@@ -1058,7 +1106,7 @@
                     } else {
                         breakdownHtml += `<tr><td colspan="5" style="padding:10px; text-align:center;">No breakdown data available.</td></tr>`;
                     }
-                    breakdownHtml += `</table>`;
+                    breakdownHtml += `</table></div>`;
 
                     html += `<tr class="rank-row" style="cursor:pointer; background:#fff; transition:0.2s;" onclick="toggleRow('bd-${i}')">
                         <td><strong>#${i+1}</strong></td>
