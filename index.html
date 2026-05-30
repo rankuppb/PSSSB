@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RevisePYQ CBT Portal</title>
+    
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            }
+        };
+    </script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <style>
+        /* LIGHT THEME & SSC UI VARIABLES */
+        :root {
+            --bg-main: #f4f6f9;
+            --header-bg: #1f82c0; 
+            --header-text: #ffffff;
+            --panel-bg: #ffffff;
+            --border-color: #d2d6de;
+            --text-main: #333333;
+            --text-muted: #777777;
+            
+            /* Palette Colors */
+            --ans-color: #5cb85c; 
+            --not-ans-color: #d9534f; 
+            --not-vis-color: #e2e2e2; 
+            --marked-color: #9b59b6; 
+            
+            --accent: #3c8dbc;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, 'Segoe UI', sans-serif;
+            background: var(--bg-main);
+            color: var(--text-main);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* --- PRE-EXAM HUB (LOBBY) STYLES --- */
+        #pre-exam-hub { display: flex; height: 100%; width: 100%; }
+        .sidebar { width: 300px; background: #fff; border-right: 1px solid var(--border-color); display: flex; flex-direction: column; overflow-y: auto; }
+        .sidebar-header { padding: 25px 20px; background: var(--header-bg); color: white; text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 1px; display: flex; align-items: center; justify-content: center; gap: 12px; }
+        .filter-section { padding: 15px 20px; border-bottom: 1px solid var(--border-color); }
+        .filter-section h3 { font-size: 13px; text-transform: uppercase; color: var(--text-muted); margin-top: 0; margin-bottom: 15px; }
+        
+        .filter-btn { background: transparent; border: none; color: #444; padding: 12px 15px; width: 100%; text-align: left; cursor: pointer; border-radius: 6px; transition: 0.2s; display: block; margin-bottom: 5px; font-size: 15px; font-weight: bold; }
+        .filter-btn:hover, .filter-btn.active { background: #e1f0fa; color: var(--accent); border-left: 4px solid var(--accent); }
+
+        .hub-content { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; background: #ecf0f5; overflow-y: auto;}
+        
+        .start-card { background: #fff; padding: 40px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-align: center; max-width: 800px; width: 100%; }
+        .start-card h2 { color: var(--accent); font-size: 28px; margin-bottom: 10px; }
+        .start-card p { color: var(--text-muted); font-size: 16px; margin-bottom: 30px; }
+        .start-btn { background: var(--ans-color); color: white; border: none; padding: 15px 40px; font-size: 18px; font-weight: bold; border-radius: 4px; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 6px rgba(92, 184, 92, 0.3); }
+        .start-btn:hover { background: #4cae4c; transform: translateY(-2px); }
+
+        /* GRID IN MAIN AREA */
+        .main-grid-btn { background: #fff; border: 2px solid var(--border-color); color: var(--text-main); padding: 18px 15px; font-size: 15px; font-weight: bold; text-align: center; border-radius: 8px; cursor: pointer; transition: 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: center; word-break: break-word; }
+        .main-grid-btn:hover { border-color: var(--accent); background: #f4f9fd; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); color: var(--accent); }
+
+        /* --- SSC CBT INTERFACE STYLES --- */
+        #ssc-exam-ui { display: none; flex-direction: column; height: 100%; width: 100%; }
+        
+        .ssc-header { background: var(--header-bg); color: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); z-index: 10; }
+        .ssc-header-left { font-size: 20px; font-weight: bold; }
+        .ssc-header-right { display: flex; align-items: center; gap: 20px; font-size: 15px; }
+        .timer-box { font-weight: bold; font-size: 18px; background: rgba(0,0,0,0.2); padding: 5px 15px; border-radius: 4px; }
+
+        .ssc-main { display: flex; flex: 1; overflow: hidden; }
+        
+        /* Left Panel (Questions) */
+        .ssc-left { flex: 1; display: flex; flex-direction: column; border-right: 1px solid var(--border-color); background: #fff; }
+        .section-tabs { display: flex; background: #e8ebf0; border-bottom: 1px solid var(--border-color); overflow-x: auto; }
+        .sec-tab { padding: 12px 25px; cursor: pointer; font-weight: bold; color: #555; border-right: 1px solid var(--border-color); background: #f4f6f9; border-top: 3px solid transparent; transition: 0.2s; white-space: nowrap; }
+        .sec-tab.active { background: #fff; color: var(--accent); border-top: 3px solid var(--accent); border-bottom: 1px solid #fff; margin-bottom: -1px; }
+
+        .question-header { display: flex; justify-content: space-between; padding: 15px 25px; border-bottom: 1px solid #eee; font-weight: bold; color: var(--text-main); font-size: 18px; }
+        .question-body { flex: 1; padding: 25px; overflow-y: auto; font-size: 16px; line-height: 1.6; white-space: pre-wrap; word-wrap: break-word; }
+        
+        .options-container { margin-top: 15px; display: flex; flex-direction: column; gap: 15px; }
+        .radio-option { display: flex; align-items: flex-start; gap: 15px; padding: 10px; cursor: pointer; border: 1px solid transparent; border-radius: 4px; transition: 0.2s; }
+        .radio-option:hover { background: #f9fafc; border-color: #e2e2e2; }
+        .radio-option input[type="radio"] { margin-top: 5px; transform: scale(1.2); cursor: pointer; }
+        .opt-text { flex: 1; white-space: pre-wrap; word-wrap: break-word; }
+
+        /* Bottom Action Bar */
+        .action-bar { padding: 15px 25px; background: #f9fafc; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+        .btn-group-left { display: flex; gap: 10px; }
+        .btn { padding: 10px 20px; font-weight: bold; border: 1px solid transparent; border-radius: 4px; cursor: pointer; transition: 0.2s; font-size: 14px; }
+        .btn-mark { background: #f39c12; color: white; }
+        .btn-mark:hover { background: #e67e22; }
+        .btn-clear { background: #fff; color: #333; border-color: #ccc; }
+        .btn-clear:hover { background: #e6e6e6; }
+        .btn-save { background: var(--ans-color); color: white; }
+        .btn-save:hover { background: #4cae4c; }
+        .btn-submit { background: var(--header-bg); color: white; }
+        .btn-submit:hover { background: #1b6d9f; }
+
+        /* Right Panel (Palette) */
+        .ssc-right { width: 320px; display: flex; flex-direction: column; background: #e8ebf0; }
+        .candidate-profile { padding: 20px; background: #fff; display: flex; align-items: center; gap: 15px; border-bottom: 1px solid var(--border-color); }
+        .cand-avatar { width: 60px; height: 60px; background: #ddd; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; color: #888; }
+        .cand-info { font-weight: bold; font-size: 15px; }
+
+        .palette-legend { padding: 15px; background: #fff; border-bottom: 1px solid var(--border-color); font-size: 13px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .leg-item { display: flex; align-items: center; gap: 8px; }
+        .leg-box { width: 24px; height: 24px; color: white; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; border-radius: 3px; }
+        .leg-box.ans { background: var(--ans-color); }
+        .leg-box.not-ans { background: var(--not-ans-color); }
+        .leg-box.not-vis { background: var(--not-vis-color); color: #333; border: 1px solid #ccc; }
+        .leg-box.mark { background: var(--marked-color); border-radius: 50%; }
+        .leg-box.mark-ans { background: var(--marked-color); border-radius: 50%; position: relative; }
+        .leg-box.mark-ans::after { content: ''; position: absolute; bottom: 2px; right: 2px; width: 6px; height: 6px; background: var(--ans-color); border-radius: 50%; }
+
+        .palette-header { padding: 10px 15px; background: #d2d6de; font-weight: bold; font-size: 14px; text-align: center; }
+        .palette-grid-container { flex: 1; overflow-y: auto; padding: 15px; background: #fff; }
+        .palette-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+        .pal-btn { width: 100%; aspect-ratio: 1; border: none; color: white; font-weight: bold; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; border-radius: 4px; transition: transform 0.1s; }
+        .pal-btn:active { transform: scale(0.95); }
+        
+        .pal-btn.ans { background: var(--ans-color); }
+        .pal-btn.not-ans { background: var(--not-ans-color); }
+        .pal-btn.not-vis { background: var(--not-vis-color); color: #333; border: 1px solid #ccc; }
+        .pal-btn.mark { background: var(--marked-color); border-radius: 50%; }
+        .pal-btn.mark-ans { background: var(--marked-color); border-radius: 50%; position: relative; }
+        .pal-btn.mark-ans::after { content: ''; position: absolute; bottom: 4px; right: 4px; width: 10px; height: 10px; background: var(--ans-color); border-radius: 50%; border: 1px solid #fff;}
+
+        /* --- RESULT/ANALYSIS VIEW --- */
+        #result-view { display: none; flex-direction: column; height: 100%; width: 100%; background: var(--bg-main); overflow-y: auto; padding: 40px; box-sizing: border-box; align-items: center; }
+        .result-card { background: #fff; width: 100%; max-width: 900px; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .result-header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #eee; padding-bottom: 20px; }
+        .score-display { font-size: 48px; font-weight: bold; color: var(--ans-color); }
+        .ans-review-box { background: #f9fafc; padding: 30px; border-left: 4px solid var(--accent); border-radius: 4px; min-height: 250px;}
+        .correct-opt { color: var(--ans-color); font-weight: bold; }
+        .wrong-opt { color: var(--not-ans-color); font-weight: bold; text-decoration: line-through; }
+        .expl-box { background: #e1f0fa; padding: 15px; border-radius: 4px; margin-top: 15px; font-size: 14px; color: #333; white-space: pre-wrap; word-wrap: break-word; }
+
+        /* Modals */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-box { padding: 40px; width: 400px; background: #fff; border-radius: 8px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        .modal-box h2 { color: var(--accent); margin-top: 0; }
+        .modal-box input { width: 90%; padding: 12px; margin: 20px 0; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; outline: none; }
+        
+        .leaderboard-table { width: 100%; border-collapse: collapse; margin-top: 0; text-align: left; }
+        .leaderboard-table th, .leaderboard-table td { padding: 12px; border-bottom: 1px solid #eee; }
+        .close-btn { position: absolute; top: 10px; right: 15px; background: none; border: none; font-size: 28px; cursor: pointer; color: #888; }
+        .close-btn:hover { color: #d9534f; }
+        
+        .rank-row:hover { background: #f4f9fd !important; }
+        
+        /* Recommendation styling */
+        .rec-item { padding: 12px 20px; cursor:pointer; border-bottom:1px solid #eee; transition: 0.2s; }
+        .rec-item:hover { background: #f4f9fd; color: var(--accent); padding-left: 25px; }
+    </style>
+</head>
+<body>
+
+    <div class="modal-overlay" id="loginModal">
+        <div class="modal-box">
+            
+            <div id="loginForm">
+                <h2>System Login</h2>
+                <p style="color: #666; margin-bottom: 25px;">Enter your credentials to access the portal.</p>
+                <input type="text" id="loginMobile" placeholder="Mobile Number" required>
+                <input type="password" id="loginPassword" placeholder="Password" required>
+                <button class="btn btn-save" style="width: 100%; font-size: 16px; padding: 12px;" onclick="processLogin()">Login</button>
+                <p style="margin-top: 20px; font-size: 14px;"><a href="#" onclick="toggleAuth('register')" style="color: var(--accent); text-decoration: none; font-weight: bold;">New User? Register Here</a></p>
+            </div>
+
+            <div id="registerForm" style="display: none;">
+                <h2>Create Account</h2>
+                <p style="color: #666; margin-bottom: 25px;">Register to gain access to RevisePYQ.</p>
+                <input type="text" id="regName" placeholder="Full Name" required>
+                <input type="text" id="regMobile" placeholder="Mobile Number" required>
+                <input type="password" id="regPassword" placeholder="Create Password" required>
+                <button class="btn btn-submit" style="width: 100%; font-size: 16px; padding: 12px;" onclick="processRegister()">Register Account</button>
+                <p style="margin-top: 20px; font-size: 14px;"><a href="#" onclick="toggleAuth('login')" style="color: var(--accent); text-decoration: none; font-weight: bold;">Already have an account? Login</a></p>
+            </div>
+
+            <div id="authLoading" style="display: none;">
+                <h2 style="color: var(--ans-color);">Authenticating...</h2>
+                <p style="color: #666;">Please wait while we verify your details securely.</p>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="leaderboardModal" style="display: none;">
+        <div class="modal-box" style="width: 800px; position: relative; max-height: 85vh; overflow-y: auto; background: #f9fafc; padding: 30px;">
+            <button class="close-btn" onclick="document.getElementById('leaderboardModal').style.display='none'">×</button>
+            <h2 style="margin-bottom: 5px; color: var(--header-bg); text-align: left;">🏆 Test Series Leaderboard</h2>
+            <p style="color: var(--text-muted); margin-bottom: 25px; text-align: left;">Select a Test Series below to view candidate rankings and chapter breakdowns.</p>
+            
+            <select id="leaderboardSelect" onchange="renderSpecificLeaderboard()" style="width: 100%; padding: 12px; margin-bottom: 20px; border-radius: 6px; border: 1px solid var(--border-color); font-size: 16px; font-weight: bold; color: var(--text-main); background: white;"></select>
+            
+            <div style="background: #fff; border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden;">
+                <table class="leaderboard-table">
+                    <thead style="background: var(--header-bg); color: white;">
+                        <tr><th style="color:white;">Rank</th><th style="color:white;">Candidate Name</th><th style="color:white;">Net Score</th><th style="color:white;">Total Time</th></tr>
+                    </thead>
+                    <tbody id="leaderboardBody"><tr><td colspan="4" style="text-align:center;">Select a Test Series to view rankings</td></tr></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="pre-exam-hub">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <img src="https://lh3.googleusercontent.com/d/18Gc5tzJD5kwDhf1-zY2AOVIFiZUlOQxQ" alt="Logo" style="height: 35px; border-radius: 4px;">
+                RevisePYQ
+            </div>
+
+            <div class="filter-section" style="padding: 25px 20px;">
+                <button class="btn btn-submit" style="width:100%; background: #333;" onclick="fetchLeaderboard()">🏆 Test Series Leaderboard</button>
+            </div>
+            
+            <div class="filter-section">
+                <button class="filter-btn active" onclick="activateNav(this); applyFilterMulti({}, 'Complete Database', 'All')">📝 Complete Database</button>
+                <button class="filter-btn" onclick="activateNav(this); showCategoryGrid('Test Series')">🗂️ Test Series</button>
+                <button class="filter-btn" onclick="activateNav(this); showCategoryGrid('Subjects')">📚 Subjects & Topics</button>
+                <button class="filter-btn" onclick="activateNav(this); showCategoryGrid('Agencies')">🏢 Agencies</button>
+            </div>
+        </aside>
+        
+        <div class="hub-content" id="hubContent">
+            
+            <div class="top-search-bar" style="max-width: 800px; width: 100%; display: flex; gap: 10px; margin-bottom: 30px; position: relative;">
+                <div style="position: relative; flex: 1;">
+                    <input type="text" id="mainSearchInput" placeholder="🔍 Deep Search: Find questions, topics, test names, or agencies..." style="width: 100%; padding: 15px 20px; font-size: 16px; border: 2px solid var(--accent); border-radius: 6px; outline: none; box-sizing: border-box; box-shadow: 0 4px 10px rgba(0,0,0,0.05);" onkeyup="showRecommendations(this.value)" onfocus="showRecommendations(this.value)">
+                    <div id="searchRecommendations" style="display:none; position:absolute; top:100%; left:0; width:100%; background:white; border:1px solid var(--accent); border-top: none; z-index:100; max-height:250px; overflow-y:auto; box-shadow: 0 8px 15px rgba(0,0,0,0.1); border-radius: 0 0 6px 6px; text-align: left;"></div>
+                </div>
+                <button class="btn btn-save" style="font-size: 16px; padding: 0 30px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);" onclick="executeSearch('mainSearchInput')">Search</button>
+            </div>
+
+            <div class="start-card" id="dbStatusCard">
+                <h2>Connecting to Server...</h2>
+                <p>Syncing secure database with Google Sheets.</p>
+            </div>
+            
+            <div class="start-card" id="categoryGridCard" style="display: none; max-width: 800px; width: 100%;">
+                <h2 id="gridTitle" style="color: var(--accent); margin-bottom: 25px;">Select Category</h2>
+                <div id="mainCategoryGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px;">
+                    </div>
+            </div>
+
+            <div class="start-card" id="examStartCard" style="display: none;">
+                <h2 id="hubExamTitle">General Practice</h2>
+                <p id="hubExamDesc">Select a module from the left panel to begin, or start the complete practice set.</p>
+                <div style="font-size: 14px; background: #f9fafc; padding: 15px; border-radius: 4px; text-align: left; margin-bottom: 20px; border: 1px solid #eee;">
+                    <strong>Instructions:</strong><br><br>
+                    1. Clock will run in the background.<br>
+                    2. Use <b>Save & Next</b> to confirm answer.<br>
+                    3. Click <b>Submit Exam</b> to view Explanations and Results.<br>
+                    4. <b>Marking Scheme:</b> +1 for Correct, -0.25 for Incorrect.
+                </div>
+                <button class="start-btn" onclick="startSSCExam()">Start CBT Exam</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="ssc-exam-ui">
+        <header class="ssc-header">
+            <div class="ssc-header-left" id="cbtExamName">RevisePYQ CBT</div>
+            <div class="ssc-header-right">
+                <span id="cbtCandName">Candidate Name</span>
+                <div class="timer-box" id="cbtTimer">00:00:00</div>
+            </div>
+        </header>
+        
+        <div class="ssc-main">
+            <div class="ssc-left">
+                <div class="section-tabs" id="cbtTabs"></div>
+                
+                <div class="question-header">
+                    <span id="qNumDisplay">Question No. 1</span>
+                    <span style="color: #d9534f; cursor:pointer;" onclick="reportError()">⚠ Report</span>
+                </div>
+                
+                <div class="question-body">
+                    <div id="qTextDisplay" style="font-weight:bold; margin-bottom: 5px;">Loading question...</div>
+                    <div id="qRefDisplay" style="text-align: right; font-size: 18px; font-weight: bold; color: #d9534f; margin-bottom: 20px;"></div>
+                    <div class="options-container" id="qOptionsDisplay"></div>
+                </div>
+                
+                <div class="action-bar">
+                    <div class="btn-group-left">
+                        <button class="btn btn-mark" onclick="markForReview()">Mark for Review & Next</button>
+                        <button class="btn btn-clear" onclick="clearResponse()">Clear Response</button>
+                    </div>
+                    <div class="btn-group-right">
+                        <button class="btn btn-save" onclick="saveAndNext()">Save & Next</button>
+                        <button class="btn btn-submit" style="margin-left:15px;" onclick="submitExam()">Submit Exam</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ssc-right">
+                <div class="candidate-profile">
+                    <div class="cand-avatar">👤</div>
+                    <div class="cand-info" id="palCandName">Name</div>
+                </div>
+                <div class="palette-legend">
+                    <div class="leg-item"><div class="leg-box ans" id="cntAns">0</div> Answered</div>
+                    <div class="leg-item"><div class="leg-box not-ans" id="cntNotAns">0</div> Not Answered</div>
+                    <div class="leg-item"><div class="leg-box not-vis" id="cntNotVis">0</div> Not Visited</div>
+                    <div class="leg-item"><div class="leg-box mark" id="cntMark">0</div> Marked</div>
+                    <div class="leg-item" style="grid-column: span 2;"><div class="leg-box mark-ans" id="cntMarkAns">0</div> Ans & Marked</div>
+                </div>
+                <div class="palette-header" id="palSectionName">Section Name</div>
+                <div class="palette-grid-container">
+                    <div class="palette-grid" id="paletteGrid"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="result-view">
+        <div class="result-card">
+            <div class="result-header">
+                <h2>Exam Summary & Analysis</h2>
+                <p style="color: var(--text-muted);" id="resCategory">Module Name</p>
+                <div class="score-display" id="resScoreDisplay">0.00 / 0</div>
+                <p style="margin-top: 5px;">Total Marks (+1 / -0.25)</p>
+                
+                <div style="display: flex; justify-content: center; gap: 30px; margin-top: 20px; font-size: 16px; background: #f4f6f9; padding: 15px; border-radius: 6px;">
+                    <span style="color: var(--ans-color); font-weight: bold;">✔ Correct: <span id="resCorrect">0</span></span>
+                    <span style="color: var(--not-ans-color); font-weight: bold;">✖ Wrong: <span id="resWrong">0</span></span>
+                    <span style="color: var(--text-muted); font-weight: bold;">⚪ Skipped: <span id="resSkipped">0</span></span>
+                </div>
+
+                <button class="btn btn-submit" style="margin-top: 25px;" onclick="returnToHub()">Return to Dashboard</button>
+            </div>
+            
+            <h3 style="margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px;">Detailed Review</h3>
+            
+            <div id="analysisContainer"></div>
+            
+            <div class="review-nav" style="display:flex; justify-content: space-between; margin-top: 25px; align-items: center; border-top: 1px solid #eee; padding-top: 20px;">
+                <button class="btn btn-clear" style="font-size: 15px;" onclick="prevReviewQ()">⬅ Previous</button>
+                <span id="reviewQCounter" style="font-weight: bold; color: var(--text-muted); font-size: 16px;">1 of 10</span>
+                <button class="btn btn-save" style="font-size: 15px;" onclick="nextReviewQ()">Next ➡</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzldzS56pIPMOV1HcMtbHlFdBoawjno0MYnP4RkpHRTHcSnZTCaK3TbchdCzHSRtXfDRA/exec'; 
+        let globalQuestions = [];
+        let currentStudent = "";
+        let leaderboardData = {}; 
+        
+        let activeFilterType = 'All'; 
+        let currentActiveCategory = 'General Practice'; 
+        let currentFilteredQuestions = [];
+        
+        // --- SSC CBT STATE ---
+        let cbtSubjects = []; 
+        let activeSubject = "";
+        let globalQIndex = 0; 
+        
+        let qStates = []; 
+        let sessionTimerInterval;
+        let totalSeconds = 0;
+        let questionEntryTime = 0;
+
+        // --- REVIEW STATE ---
+        let reviewQIndex = 0;
+
+        // --- GOOGLE DRIVE IMAGE PARSING ENGINE (lh3 endpoint) ---
+        function processDriveImages(htmlText) {
+            if (!htmlText) return '';
+            let text = String(htmlText);
+            
+            const srcRegex = /(src=["']https:\/\/drive\.google\.com\/(?:file\/d\/|open\?id=))([a-zA-Z0-9_-]+)([^"']*["'])/gi;
+            text = text.replace(srcRegex, (match, p1, id) => {
+                return `src="https://lh3.googleusercontent.com/d/$${id}"`;
+            });
+            
+            const rawLinkRegex = /(?<!src=["']|href=["']|url\()https:\/\/drive\.google\.com\/(?:file\/d\/|open\?id=)([a-zA-Z0-9_-]+)(?:\/[^\s"'>]*)?/gi;
+            text = text.replace(rawLinkRegex, (match, id) => {
+                return `<img src="https://lh3.googleusercontent.com/d/$${id}" style="max-width:100%; max-height:380px; margin:12px 0; display:block; border:1px solid var(--border-color); border-radius:4px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);" alt="Question Illustration">`;
+            });
+            
+            return text;
+        }
+
+        // --- AUTHENTICATION FLOW (LOGIN / REGISTRATION) ---
+        document.addEventListener("DOMContentLoaded", () => {
+            const savedMob = localStorage.getItem('rankup_mobile');
+            const savedPwd = localStorage.getItem('rankup_pwd');
+            if(savedMob && savedPwd) {
+                // Feature 1 Update: Pre-fill the login inputs so they are ready next time
+                document.getElementById('loginMobile').value = savedMob;
+                document.getElementById('loginPassword').value = savedPwd;
+                
+                // Continue to run the auto-login automatically
+                document.getElementById('loginForm').style.display = 'none';
+                document.getElementById('authLoading').style.display = 'block';
+                autoLogin(savedMob, savedPwd);
+            }
+        });
+
+        function toggleAuth(mode) {
+            if(mode === 'register') {
+                document.getElementById('loginForm').style.display = 'none';
+                document.getElementById('registerForm').style.display = 'block';
+            } else {
+                document.getElementById('registerForm').style.display = 'none';
+                document.getElementById('loginForm').style.display = 'block';
+            }
+        }
+
+        async function processRegister() {
+            const name = document.getElementById('regName').value.trim();
+            const mob = document.getElementById('regMobile').value.trim();
+            const pwd = document.getElementById('regPassword').value.trim();
+            if(!name || !mob || !pwd) return alert("Please fill in all registration fields.");
+
+            document.getElementById('registerForm').style.display = 'none';
+            document.getElementById('authLoading').style.display = 'block';
+
+            try {
+                const res = await fetch(SCRIPT_URL + "?action=register&name=" + encodeURIComponent(name) + "&mobile=" + encodeURIComponent(mob) + "&password=" + encodeURIComponent(pwd));
+                const data = await res.json();
+                
+                document.getElementById('authLoading').style.display = 'none';
+                if(data.success) {
+                    alert("Registration successful! You may now login.");
+                    toggleAuth('login');
+                } else {
+                    alert(data.message);
+                    document.getElementById('registerForm').style.display = 'block';
+                }
+            } catch(e) {
+                alert("Registration Failed. Check connection.");
+                document.getElementById('authLoading').style.display = 'none';
+                document.getElementById('registerForm').style.display = 'block';
+            }
+        }
+
+        async function processLogin() {
+            const mob = document.getElementById('loginMobile').value.trim();
+            const pwd = document.getElementById('loginPassword').value.trim();
+            if(!mob || !pwd) return alert("Enter Mobile and Password.");
+            
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('authLoading').style.display = 'block';
+            
+            try {
+                const res = await fetch(SCRIPT_URL + "?action=login&mobile=" + encodeURIComponent(mob) + "&password=" + encodeURIComponent(pwd));
+                const data = await res.json();
+                if(data.success) {
+                    localStorage.setItem('rankup_mobile', mob);
+                    localStorage.setItem('rankup_pwd', pwd);
+                    completeLoginInit(data.name);
+                } else {
+                    alert(data.message);
+                    document.getElementById('authLoading').style.display = 'none';
+                    document.getElementById('loginForm').style.display = 'block';
+                }
+            } catch(e) {
+                alert("Login Failed. Check connection.");
+                document.getElementById('authLoading').style.display = 'none';
+                document.getElementById('loginForm').style.display = 'block';
+            }
+        }
+
+        async function autoLogin(mob, pwd) {
+            try {
+                const res = await fetch(SCRIPT_URL + "?action=login&mobile=" + encodeURIComponent(mob) + "&password=" + encodeURIComponent(pwd));
+                const data = await res.json();
+                if(data.success) {
+                    completeLoginInit(data.name);
+                } else {
+                    // Note: Intentionally NOT wiping localStorage, so it stays auto-filled for the user to try again
+                    document.getElementById('authLoading').style.display = 'none';
+                    document.getElementById('loginForm').style.display = 'block';
+                }
+            } catch(e) {
+                document.getElementById('authLoading').style.display = 'none';
+                document.getElementById('loginForm').style.display = 'block';
+            }
+        }
+
+        function completeLoginInit(userName) {
+            currentStudent = userName;
+            document.getElementById('cbtCandName').innerText = currentStudent;
+            document.getElementById('palCandName').innerText = currentStudent;
+            document.getElementById('loginModal').style.display = 'none';
+            initPortal();
+        }
+
+        async function initPortal() {
+            try {
+                const response = await fetch(SCRIPT_URL);
+                globalQuestions = await response.json();
+                
+                document.getElementById('dbStatusCard').style.display = 'none';
+                applyFilterMulti({}, 'Complete Database', 'All'); 
+            } catch (error) {
+                document.getElementById('dbStatusCard').innerHTML = "<h2 style='color:#d9534f'>Connection Error</h2><p>Please check script URL or network.</p>";
+            }
+        }
+
+        function activateNav(btn) {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            if(btn) btn.classList.add('active');
+        }
+
+        // --- Feature 2: Database Recommendations Logic ---
+        function showRecommendations(val) {
+            const recBox = document.getElementById('searchRecommendations');
+            if (!globalQuestions || globalQuestions.length === 0) return;
+            
+            let recs = new Set();
+            globalQuestions.forEach(q => {
+                if (q['Test Name']) recs.add(q['Test Name']);
+                if (q['Subject']) recs.add(q['Subject']);
+                if (q['Topic']) recs.add(q['Topic']);
+            });
+            
+            let arr = Array.from(recs);
+            if (val.trim() !== '') {
+                arr = arr.filter(item => item.toLowerCase().includes(val.toLowerCase()));
+            }
+            
+            arr = arr.slice(0, 8); // Show top 8 recommendations
+            
+            if (arr.length === 0 || val.trim() === '') {
+                recBox.style.display = 'none';
+                return;
+            }
+            
+            recBox.innerHTML = arr.map(item => `<div class="rec-item" onclick="selectRecommendation('${item}')">🔍 ${item}</div>`).join('');
+            recBox.style.display = 'block';
+        }
+
+        function selectRecommendation(val) {
+            document.getElementById('mainSearchInput').value = val;
+            document.getElementById('searchRecommendations').style.display = 'none';
+            executeSearch('mainSearchInput');
+        }
+
+        // Hide recommendations when clicking outside
+        document.addEventListener('click', (e) => {
+            if(e.target.id !== 'mainSearchInput') {
+                const recBox = document.getElementById('searchRecommendations');
+                if(recBox) recBox.style.display = 'none';
+            }
+        });
+
+        // --- Deep Search Logic ---
+        function executeSearch(inputId) {
+            const term = document.getElementById(inputId).value.toLowerCase().trim();
+            if (!term) return alert("Please enter a keyword to search.");
+            
+            document.getElementById('searchRecommendations').style.display = 'none';
+            
+            currentFilteredQuestions = globalQuestions.filter(q => {
+                const textToSearch = [
+                    q.Question || "",
+                    q.Subject || "",
+                    q.Topic || "",
+                    q['Test Name'] || "",
+                    q.Agency || "",
+                    q.Explanation || ""
+                ].join(" ").toLowerCase();
+                return textToSearch.includes(term);
+            });
+            
+            if (currentFilteredQuestions.length === 0) {
+                return alert("No matching records found in the database.");
+            }
+            
+            activateNav(null); 
+            document.getElementById('categoryGridCard').style.display = 'none';
+            document.getElementById('examStartCard').style.display = 'block';
+            
+            currentActiveCategory = `Search Results: "${term}"`;
+            activeFilterType = 'Search';
+            
+            document.getElementById('hubExamTitle').innerText = currentActiveCategory;
+            document.getElementById('hubExamDesc').innerText = `Found ${currentFilteredQuestions.length} matching question(s). Ready to begin?`;
+        }
+
+        function showCategoryGrid(category, parentFilter = {}) {
+            document.getElementById('dbStatusCard').style.display = 'none';
+            document.getElementById('examStartCard').style.display = 'none';
+            document.getElementById('categoryGridCard').style.display = 'block';
+            
+            const grid = document.getElementById('mainCategoryGrid');
+            const title = document.getElementById('gridTitle');
+            grid.innerHTML = '';
+            
+            if (category === 'Test Series') {
+                title.innerText = "Select Test Series";
+                const testNames = [...new Set(globalQuestions.map(q => q['Test Name']).filter(v => v))];
+                testNames.forEach(test => {
+                    grid.appendChild(createMainGridBtn(test, () => applyFilterMulti({'Test Name': test}, test, 'Test')));
+                });
+            } else if (category === 'Subjects') {
+                if (!parentFilter.Subject) {
+                    title.innerText = "Select Subject";
+                    const subjects = [...new Set(globalQuestions.map(q => q['Subject']).filter(v => v))];
+                    subjects.forEach(sub => {
+                        grid.appendChild(createMainGridBtn(`📚 ${sub}`, () => showCategoryGrid('Subjects', {Subject: sub})));
+                    });
+                } else {
+                    title.innerText = `Select Topic in ${parentFilter.Subject}`;
+                    grid.appendChild(createMainGridBtn(`<b>📝 Start All Topics in ${parentFilter.Subject}</b>`, () => applyFilterMulti({Subject: parentFilter.Subject}, parentFilter.Subject, 'Subject'), true));
+                    
+                    const topics = [...new Set(globalQuestions.filter(q => q.Subject === parentFilter.Subject).map(q => q.Topic).filter(v => v))];
+                    topics.forEach(top => {
+                        grid.appendChild(createMainGridBtn(`↳ ${top}`, () => applyFilterMulti({Subject: parentFilter.Subject, Topic: top}, top, 'Topic')));
+                    });
+                }
+            } else if (category === 'Agencies') {
+                if (!parentFilter.Agency) {
+                    title.innerText = "Select Agency";
+                    const agencies = [...new Set(globalQuestions.map(q => q['Agency']).filter(v => v))];
+                    agencies.forEach(ag => {
+                        grid.appendChild(createMainGridBtn(`🏢 ${ag}`, () => showCategoryGrid('Agencies', {Agency: ag})));
+                    });
+                } else if (!parentFilter.Subject) {
+                    title.innerText = `Select Subject in ${parentFilter.Agency}`;
+                    grid.appendChild(createMainGridBtn(`<b>📝 Start Complete ${parentFilter.Agency}</b>`, () => applyFilterMulti({Agency: parentFilter.Agency}, parentFilter.Agency, 'Agency'), true));
+                    
+                    const subjects = [...new Set(globalQuestions.filter(q => q.Agency === parentFilter.Agency).map(q => q.Subject).filter(v => v))];
+                    subjects.forEach(sub => {
+                        grid.appendChild(createMainGridBtn(`📚 ${sub}`, () => showCategoryGrid('Agencies', {Agency: parentFilter.Agency, Subject: sub})));
+                    });
+                } else {
+                    title.innerText = `Select Topic (${parentFilter.Agency} ➔ ${parentFilter.Subject})`;
+                    grid.appendChild(createMainGridBtn(`<b>📝 Start Complete Subject</b>`, () => applyFilterMulti({Agency: parentFilter.Agency, Subject: parentFilter.Subject}, parentFilter.Subject, 'Agency'), true));
+                    
+                    const topics = [...new Set(globalQuestions.filter(q => q.Agency === parentFilter.Agency && q.Subject === parentFilter.Subject).map(q => q.Topic).filter(v => v))];
+                    topics.forEach(top => {
+                        grid.appendChild(createMainGridBtn(`↳ ${top}`, () => applyFilterMulti({Agency: parentFilter.Agency, Subject: parentFilter.Subject, Topic: top}, top, 'Agency')));
+                    });
+                }
+            }
+        }
+
+        function createMainGridBtn(text, onClickFunc, isPrimary = false) {
+            const btn = document.createElement('button');
+            btn.className = 'main-grid-btn';
+            if (isPrimary) {
+                btn.style.background = '#e1f0fa';
+                btn.style.borderColor = 'var(--accent)';
+                btn.style.gridColumn = '1 / -1'; 
+            }
+            btn.innerHTML = text;
+            btn.onclick = onClickFunc;
+            return btn;
+        }
+
+        function applyFilterMulti(filtersObj, displayName, type) {
+            activeFilterType = type;
+            currentActiveCategory = displayName;
+
+            currentFilteredQuestions = globalQuestions.filter(q => {
+                for (let key in filtersObj) {
+                    if (q[key] !== filtersObj[key]) return false;
+                }
+                return true;
+            });
+            
+            document.getElementById('categoryGridCard').style.display = 'none';
+            document.getElementById('examStartCard').style.display = 'block';
+            document.getElementById('hubExamTitle').innerText = displayName;
+            document.getElementById('hubExamDesc').innerText = `Module contains ${currentFilteredQuestions.length} question(s). Ready to begin?`;
+        }
+
+        function startSSCExam() {
+            if (currentFilteredQuestions.length === 0) return alert("No questions available for this module.");
+            
+            document.getElementById('pre-exam-hub').style.display = 'none';
+            document.getElementById('result-view').style.display = 'none';
+            document.getElementById('ssc-exam-ui').style.display = 'flex';
+            document.getElementById('cbtExamName').innerText = currentActiveCategory;
+
+            cbtSubjects = [...new Set(currentFilteredQuestions.map(q => q.Subject || 'General'))];
+            activeSubject = cbtSubjects[0];
+            globalQIndex = 0;
+            
+            qStates = currentFilteredQuestions.map(q => ({
+                status: 'not_visited',
+                selectedOpt: null,
+                timeSpent: 0
+            }));
+
+            totalSeconds = 0;
+            clearInterval(sessionTimerInterval);
+            sessionTimerInterval = setInterval(() => {
+                totalSeconds++;
+                const h = Math.floor(totalSeconds / 3600).toString().padStart(2, '0');
+                const m = Math.floor((totalSeconds % 3600) / 60).toString().padStart(2, '0');
+                const s = (totalSeconds % 60).toString().padStart(2, '0');
+                document.getElementById('cbtTimer').innerText = `${h}:${m}:${s}`;
+            }, 1000);
+
+            renderTabs();
+            loadQuestion(0);
+        }
+
+        function renderTabs() {
+            const tabsContainer = document.getElementById('cbtTabs');
+            tabsContainer.innerHTML = '';
+            cbtSubjects.forEach(sub => {
+                const tab = document.createElement('div');
+                tab.className = `sec-tab ${sub === activeSubject ? 'active' : ''}`;
+                tab.innerText = sub;
+                tab.onclick = () => {
+                    const targetIndex = currentFilteredQuestions.findIndex(q => (q.Subject || 'General') === sub);
+                    if (targetIndex !== -1) loadQuestion(targetIndex);
+                };
+                tabsContainer.appendChild(tab);
+            });
+        }
+
+        function loadQuestion(index) {
+            if (qStates[globalQIndex] && qStates[globalQIndex].status !== 'not_visited') {
+                qStates[globalQIndex].timeSpent += Math.floor((Date.now() - questionEntryTime) / 1000);
+            }
+
+            globalQIndex = index;
+            const q = currentFilteredQuestions[index];
+            const state = qStates[index];
+            
+            const qSub = q.Subject || 'General';
+            if (qSub !== activeSubject) {
+                activeSubject = qSub;
+                renderTabs();
+            }
+            
+            document.getElementById('palSectionName').innerText = activeSubject;
+
+            if (state.status === 'not_visited') state.status = 'not_answered';
+            questionEntryTime = Date.now();
+
+            document.getElementById('qNumDisplay').innerText = `Question No. ${index + 1}`;
+            
+            document.getElementById('qTextDisplay').innerHTML = processDriveImages(String(q.Question || '').trim());
+            
+            const refDiv = document.getElementById('qRefDisplay');
+            if (q['Question Reference']) {
+                refDiv.innerText = `[Ref: ${q['Question Reference']}]`;
+                refDiv.style.display = 'block';
+            } else {
+                refDiv.style.display = 'none';
+            }
+            
+            const optsContainer = document.getElementById('qOptionsDisplay');
+            optsContainer.innerHTML = '';
+            
+            ['A', 'B', 'C', 'D'].forEach(optChar => {
+                const optVal = q[`Option${optChar}`];
+                if (!optVal) return;
+                
+                const label = document.createElement('label');
+                label.className = 'radio-option';
+                
+                const radio = document.createElement('input');
+                radio.type = 'radio';
+                radio.name = 'ssc_option';
+                radio.value = optChar;
+                if (state.selectedOpt === optChar) radio.checked = true;
+                
+                const span = document.createElement('span');
+                span.className = 'opt-text';
+                span.innerHTML = `<strong>${optChar}.</strong> ${processDriveImages(String(optVal || '').trim())}`;
+                
+                label.appendChild(radio);
+                label.appendChild(span);
+                optsContainer.appendChild(label);
+            });
+
+            if (window.MathJax) MathJax.typesetPromise();
+            updatePalette();
+        }
+
+        function getSelectedRadio() {
+            const radios = document.getElementsByName('ssc_option');
+            for (let r of radios) { if (r.checked) return r.value; }
+            return null;
+        }
+
+        function clearResponse() {
+            const radios = document.getElementsByName('ssc_option');
+            for (let r of radios) r.checked = false;
+            qStates[globalQIndex].selectedOpt = null;
+            qStates[globalQIndex].status = 'not_answered';
+            updatePalette();
+        }
+
+        function markForReview() {
+            const sel = getSelectedRadio();
+            qStates[globalQIndex].selectedOpt = sel;
+            qStates[globalQIndex].status = sel ? 'marked_answered' : 'marked';
+            
+            if (sel) postToBackendSilently(globalQIndex); 
+            goToNext();
+        }
+
+        function saveAndNext() {
+            const sel = getSelectedRadio();
+            if (!sel) {
+                alert("Please select an answer or click 'Mark for Review' / jump using the palette.");
+                return;
+            }
+            qStates[globalQIndex].selectedOpt = sel;
+            qStates[globalQIndex].status = 'answered';
+            
+            postToBackendSilently(globalQIndex);
+            goToNext();
+        }
+
+        function goToNext() {
+            if (globalQIndex < currentFilteredQuestions.length - 1) {
+                loadQuestion(globalQIndex + 1);
+            } else {
+                updatePalette();
+                alert("You have reached the last question. Please review your answers and click 'Submit Exam'.");
+            }
+        }
+
+        function updatePalette() {
+            let cVis=0, cAns=0, cNotAns=0, cMark=0, cMarkAns=0;
+            const grid = document.getElementById('paletteGrid');
+            grid.innerHTML = '';
+
+            currentFilteredQuestions.forEach((q, i) => {
+                const s = qStates[i];
+                if (s.status === 'not_visited') cVis++;
+                else if (s.status === 'not_answered') cNotAns++;
+                else if (s.status === 'answered') cAns++;
+                else if (s.status === 'marked') cMark++;
+                else if (s.status === 'marked_answered') cMarkAns++;
+
+                if ((q.Subject || 'General') === activeSubject) {
+                    const btn = document.createElement('button');
+                    let cl = 'pal-not-vis';
+                    if (s.status === 'not_answered') cl = 'not-ans';
+                    else if (s.status === 'answered') cl = 'ans';
+                    else if (s.status === 'marked') cl = 'mark';
+                    else if (s.status === 'marked_answered') cl = 'mark-ans';
+                    
+                    btn.className = `pal-btn ${cl}`;
+                    btn.innerText = i + 1;
+                    if (i === globalQIndex) btn.style.boxShadow = '0 0 0 3px #333';
+                    
+                    btn.onclick = () => loadQuestion(i);
+                    grid.appendChild(btn);
+                }
+            });
+
+            document.getElementById('cntAns').innerText = cAns;
+            document.getElementById('cntNotAns').innerText = cNotAns;
+            document.getElementById('cntNotVis').innerText = cVis;
+            document.getElementById('cntMark').innerText = cMark;
+            document.getElementById('cntMarkAns').innerText = cMarkAns;
+        }
+
+        function postToBackendSilently(index) {
+            const q = currentFilteredQuestions[index];
+            const state = qStates[index];
+            if (!state.selectedOpt) return;
+
+            const isCorrect = (state.selectedOpt === q.Answer);
+            let lbCategory = currentActiveCategory;
+            if (activeFilterType === 'Agency' || activeFilterType === 'All') {
+                lbCategory = q['Test Name'] || q['Topic'] || q['Subject'] || 'General Practice';
+            }
+
+            const currentSessionTime = Math.floor((Date.now() - questionEntryTime) / 1000);
+            const finalTime = state.timeSpent + currentSessionTime;
+
+            const payload = {
+                student: currentStudent,
+                test: lbCategory, 
+                question: q.Question,
+                option: state.selectedOpt,
+                correct: isCorrect,
+                time: finalTime
+            };
+
+            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) })
+            .catch(e => console.log("Sync Error:", e));
+        }
+
+        function submitExam() {
+            if(!confirm("Are you sure you want to submit the exam? You cannot change answers after submission.")) return;
+            
+            if (qStates[globalQIndex] && qStates[globalQIndex].status !== 'not_visited') {
+                qStates[globalQIndex].timeSpent += Math.floor((Date.now() - questionEntryTime) / 1000);
+            }
+
+            clearInterval(sessionTimerInterval);
+            document.getElementById('ssc-exam-ui').style.display = 'none';
+            document.getElementById('result-view').style.display = 'flex';
+            
+            let correctCount = 0;
+            let wrongCount = 0;
+            let skippedCount = 0;
+
+            currentFilteredQuestions.forEach((q, i) => {
+                if (!qStates[i].selectedOpt) {
+                    skippedCount++;
+                } else if (qStates[i].selectedOpt === q.Answer) {
+                    correctCount++;
+                } else {
+                    wrongCount++;
+                }
+            });
+
+            let finalScore = (correctCount * 1) - (wrongCount * 0.25);
+
+            document.getElementById('resCategory').innerText = currentActiveCategory;
+            document.getElementById('resScoreDisplay').innerText = `${finalScore.toFixed(2)} / ${currentFilteredQuestions.length}`;
+            
+            document.getElementById('resCorrect').innerText = correctCount;
+            document.getElementById('resWrong').innerText = wrongCount;
+            document.getElementById('resSkipped').innerText = skippedCount;
+            
+            reviewQIndex = 0;
+            renderReviewQuestion();
+        }
+
+        function renderReviewQuestion() {
+            const container = document.getElementById('analysisContainer');
+            const q = currentFilteredQuestions[reviewQIndex];
+            const state = qStates[reviewQIndex];
+            const isCorrect = (state.selectedOpt === q.Answer);
+            
+            let userChoiceText = state.selectedOpt ? `Option ${state.selectedOpt}` : 'Not Attempted';
+            let styling = state.selectedOpt ? (isCorrect ? 'correct-opt' : 'wrong-opt') : 'text-muted';
+
+            let refHtml = q['Question Reference'] ? `<div style="text-align: right; font-size: 15px; font-weight: bold; color: #d9534f; margin-top: 5px; margin-bottom: 15px;">[Ref: ${q['Question Reference']}]</div>` : '';
+
+            container.innerHTML = `
+                <div class="ans-review-box">
+                    <div style="display:flex; justify-content: space-between; align-items:flex-start; margin-bottom: 5px;">
+                        <div style="font-weight:bold; font-size: 18px; line-height:1.5; flex:1; margin-right: 15px; white-space: pre-wrap; word-wrap: break-word;">Q${reviewQIndex+1}. ${processDriveImages(String(q.Question || '').trim())}</div>
+                        <div style="background: #e1f0fa; color: var(--accent); padding: 5px 12px; border-radius: 20px; font-size: 13px; font-weight: bold; white-space: nowrap;">
+                            ⏱️ Time Taken: ${state.timeSpent}s
+                        </div>
+                    </div>
+                    ${refHtml}
+                    <div style="font-size: 15px; margin-bottom: 8px;">Your Answer: <span class="${styling}">${userChoiceText}</span></div>
+                    <div style="font-size: 15px; margin-bottom: 15px; border-bottom: 1px solid #ddd; padding-bottom: 15px;">Correct Answer: <span class="correct-opt">Option ${q.Answer}</span></div>
+                    ${q.Explanation ? `<div class="expl-box"><strong>Explanation:</strong><br>${processDriveImages(String(q.Explanation || '').trim())}</div>` : ''}
+                </div>
+            `;
+            
+            document.getElementById('reviewQCounter').innerText = `Question ${reviewQIndex + 1} of ${currentFilteredQuestions.length}`;
+            if (window.MathJax) MathJax.typesetPromise();
+        }
+
+        function nextReviewQ() {
+            if (reviewQIndex < currentFilteredQuestions.length - 1) {
+                reviewQIndex++;
+                renderReviewQuestion();
+            }
+        }
+
+        function prevReviewQ() {
+            if (reviewQIndex > 0) {
+                reviewQIndex--;
+                renderReviewQuestion();
+            }
+        }
+
+        function returnToHub() {
+            document.getElementById('result-view').style.display = 'none';
+            document.getElementById('pre-exam-hub').style.display = 'flex';
+            fetch(SCRIPT_URL + "?action=getLeaderboard").then(r => r.json()).then(d => leaderboardData = d).catch(e=>{});
+        }
+
+        function toggleRow(id) {
+            const el = document.getElementById(id);
+            if (el.style.display === 'none') el.style.display = 'table-row';
+            else el.style.display = 'none';
+        }
+
+        async function fetchLeaderboard() {
+            document.getElementById('leaderboardModal').style.display = 'flex';
+            document.getElementById('leaderboardBody').innerHTML = "<tr><td colspan='4' style='text-align:center;'>Syncing latest scores...</td></tr>";
+            try {
+                const res = await fetch(SCRIPT_URL + "?action=getLeaderboard");
+                leaderboardData = await res.json();
+                const selectBox = document.getElementById('leaderboardSelect');
+                selectBox.innerHTML = ''; 
+                
+                const testNames = [...new Set(globalQuestions.map(q => q['Test Name']).filter(v => v))];
+                const categories = Object.keys(leaderboardData).sort();
+                const validCategories = categories.filter(c => testNames.includes(c));
+
+                if (validCategories.length === 0) {
+                    selectBox.innerHTML = '<option>No Test Series attempts recorded yet</option>';
+                    document.getElementById('leaderboardBody').innerHTML = "<tr><td colspan='4' style='text-align:center;'>No data available.</td></tr>";
+                    return;
+                }
+                
+                validCategories.forEach(cat => {
+                    const opt = document.createElement('option');
+                    opt.value = cat;
+                    opt.innerText = `${cat}`;
+                    selectBox.appendChild(opt);
+                });
+                renderSpecificLeaderboard(); 
+            } catch(e) {
+                document.getElementById('leaderboardBody').innerHTML = "<tr><td colspan='4'>Error loading leaderboard.</td></tr>";
+            }
+        }
+
+        function renderSpecificLeaderboard() {
+            const selectedCat = document.getElementById('leaderboardSelect').value;
+            const data = leaderboardData[selectedCat];
+            let html = "";
+            
+            if (data && data.length > 0) {
+                data.forEach((row, i) => {
+                    let breakdownHtml = `<table style="width:100%; border-collapse:collapse; margin-top:5px; font-size:13px; background:#fff; border: 1px solid #ddd; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                        <tr style="background:#e1f0fa; color:var(--accent);">
+                            <th style="padding:10px; text-align:left; border-bottom:1px solid #ccc;">Subject</th>
+                            <th style="padding:10px; text-align:left; border-bottom:1px solid #ccc;">Chapter (Topic)</th>
+                            <th style="padding:10px; text-align:center; border-bottom:1px solid #ccc;">Correct</th>
+                            <th style="padding:10px; text-align:center; border-bottom:1px solid #ccc;">Wrong</th>
+                            <th style="padding:10px; text-align:center; border-bottom:1px solid #ccc;">Net Score</th>
+                        </tr>`;
+                    
+                    if (row.breakdown && Object.keys(row.breakdown).length > 0) {
+                        for (let subj in row.breakdown) {
+                            for (let top in row.breakdown[subj]) {
+                                let st = row.breakdown[subj][top];
+                                breakdownHtml += `<tr>
+                                    <td style="padding:10px; border-bottom:1px solid #eee;"><strong>${subj}</strong></td>
+                                    <td style="padding:10px; border-bottom:1px solid #eee;">${top}</td>
+                                    <td style="padding:10px; border-bottom:1px solid #eee; text-align:center; color:var(--ans-color); font-weight:bold;">${st.correct}</td>
+                                    <td style="padding:10px; border-bottom:1px solid #eee; text-align:center; color:var(--not-ans-color); font-weight:bold;">${st.wrong}</td>
+                                    <td style="padding:10px; border-bottom:1px solid #eee; text-align:center; font-weight:bold; color:var(--accent);">${st.score.toFixed(2)}</td>
+                                </tr>`;
+                            }
+                        }
+                    } else {
+                        breakdownHtml += `<tr><td colspan="5" style="padding:10px; text-align:center;">No breakdown data available.</td></tr>`;
+                    }
+                    breakdownHtml += `</table>`;
+
+                    html += `<tr class="rank-row" style="cursor:pointer; background:#fff; transition:0.2s;" onclick="toggleRow('bd-${i}')">
+                        <td><strong>#${i+1}</strong></td>
+                        <td><strong>${row.name}</strong> <span style="font-size:10px; color:#aaa; margin-left:5px;">▼ CLICK TO EXPAND</span></td>
+                        <td style="color:var(--ans-color); font-weight:bold; font-size:16px;">${row.score.toFixed(2)}</td>
+                        <td>${row.time}s</td>
+                    </tr>
+                    <tr id="bd-${i}" style="display:none; background:#f4f9fd;">
+                        <td colspan="4" style="padding:20px;">
+                            <h4 style="margin:0 0 10px 0; color:#555;">Detailed Chapter Breakdown</h4>
+                            ${breakdownHtml}
+                        </td>
+                    </tr>`;
+                });
+            } else {
+                html = "<tr><td colspan='4' style='text-align:center;'>No records found.</td></tr>";
+            }
+            
+            document.getElementById('leaderboardBody').innerHTML = html;
+        }
+
+        function reportError() {
+            alert("Error reported to admin. Thank you.");
+        }
+    </script>
+</body>
+</html>
