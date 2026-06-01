@@ -431,23 +431,23 @@
 
         // --- GOOGLE DRIVE IMAGE PARSING ENGINE (Updated for GitHub Pages) ---
         function processDriveImages(htmlText) {
-            if (!htmlText) return '';
-            let text = String(htmlText);
-            
-            // Update 1: Switched to HTTPS and a more reliable lh3 Google endpoint
-            const srcRegex = /(src=["']https:\/\/drive\.google\.com\/(?:file\/d\/|open\?id=))([a-zA-Z0-9_-]+)([^"']*["'])/gi;
-            text = text.replace(srcRegex, (match, p1, id) => {
-                return `src="https://lh3.googleusercontent.com/d/${id}"`;
-            });
-            
-            // Update 2: Applied the same HTTPS endpoint to raw links
-            const rawLinkRegex = /(?<!src=["']|href=["']|url\()https:\/\/drive\.google\.com\/(?:file\/d\/|open\?id=)([a-zA-Z0-9_-]+)(?:\/[^\s"'>]*)?/gi;
-            text = text.replace(rawLinkRegex, (match, id) => {
-                return `<img src="https://lh3.googleusercontent.com/d/${id}" style="max-width:100%; max-height:380px; margin:12px 0; display:block; border:1px solid var(--border-color); border-radius:4px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);" alt="Question Illustration">`;
-            });
-            
-            return text;
-        }
+    if (!htmlText) return '';
+    let text = String(htmlText);
+    
+    // Update 1: Enforcing https:// and using the correct ${id} JavaScript syntax
+    const srcRegex = /(src=["']https:\/\/drive\.google\.com\/(?:file\/d\/|open\?id=))([a-zA-Z0-9_-]+)([^"']*["'])/gi;
+    text = text.replace(srcRegex, (match, p1, id) => {
+        return `src="https://lh3.googleusercontent.com/d/${id}"`;
+    });
+    
+    // Update 2: Applying the exact same fix to raw floating links
+    const rawLinkRegex = /(?<!src=["']|href=["']|url\()https:\/\/drive\.google\.com\/(?:file\/d\/|open\?id=)([a-zA-Z0-9_-]+)(?:\/[^\s"'>]*)?/gi;
+    text = text.replace(rawLinkRegex, (match, id) => {
+        return `<img src="https://lh3.googleusercontent.com/d/${id}" style="max-width:100%; max-height:380px; margin:12px 0; display:block; border:1px solid var(--border-color); border-radius:4px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);" alt="Question Illustration">`;
+    });
+    
+    return text;
+}
 
         // --- AUTHENTICATION FLOW (LOGIN / REGISTRATION) ---
         document.addEventListener("DOMContentLoaded", () => {
